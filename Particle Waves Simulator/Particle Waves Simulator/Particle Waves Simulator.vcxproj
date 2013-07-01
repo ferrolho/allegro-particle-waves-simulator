@@ -10,6 +10,14 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Particle.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Particle.h" />
+    <ClInclude Include="stdInclude.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{73E2BCD5-3D49-4ACE-9D1E-65273D1CA413}</ProjectGuid>
     <RootNamespace>Particle_Waves_Simulator</RootNamespace>
