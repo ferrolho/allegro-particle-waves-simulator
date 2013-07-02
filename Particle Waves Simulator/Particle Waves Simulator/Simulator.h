@@ -31,14 +31,29 @@ private:
 	ALLEGRO_KEYBOARD_STATE keyState;
 
 	bool done, draw;
+
+	vector<double> temp;
+	vector<vector<double> > angles;
+
+	int ParticleR, ParticleG, ParticleB;
 	ALLEGRO_COLOR ParticleColor;
 	bool ShowParticlePath;
 	double ParticleSpeed;
-	double ParticleDelay;
+	double ParticleXDelay;
+	double ParticleYDelay;
 	double ParticleRadius;
-	double ParticlePathDiameter;
-	double DistanceBetweenPathCenters;
+	double ParticleOrbitDiameter;
+	double DistanceBetweenOrbits;
 	unsigned int MatrixSize;
+
 	vector<SlideBar*> slides;
 	SlideBar *SpeedSlide;
+	SlideBar *XDelaySlide;
+	SlideBar *YDelaySlide;
+	SlideBar *ParticleRadiusSlide;
+	SlideBar *ParticleOrbitDiameterSlide;
+	SlideBar *DistanceBetweenOrbitsSlide;
+	SlideBar *ParticleRSlide;
+	SlideBar *ParticleGSlide;
+	SlideBar *ParticleBSlide;
 };

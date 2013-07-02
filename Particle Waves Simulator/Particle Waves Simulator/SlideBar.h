@@ -5,7 +5,9 @@
 class SlideBar
 {
 public:
-	SlideBar(const char* Name, float X, float Y, float Width, double Min, double Default, double Max);
+	SlideBar(const char* Name, int Precision, float X, float Y, float Width, double Min, double Default, double Max);
+
+	bool currentValueChanged();
 
 	double getCurrentValue() { return current_value; }
 	double getSlidePos() { return slide_pos; }
@@ -19,11 +21,13 @@ public:
 
 private:
 	const char* label;
+	int precision;
 
 	double min_value;
 	double default_value;
 	double max_value;
 	double current_value;
+	double prev_current_value;
 
 	bool slide_is_active;
 	double slide_x1, slide_y1;

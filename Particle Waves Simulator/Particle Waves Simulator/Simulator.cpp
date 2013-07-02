@@ -78,19 +78,42 @@ void Simulator::Initialize()
 	al_register_event_source(event_queue, al_get_keyboard_event_source());	
 
 	cout << "Initializing variables..." << endl;
+	left_mouse_button_pressed = false;
+	left_mouse_button_released = false;
 	done = false;
 	draw = true;
-	ParticleColor = Blue;
+
+	ParticleR = 0;
+	ParticleG = 0;
+	ParticleB = 255;
+	ParticleColor = al_map_rgb(ParticleR, ParticleG, ParticleB);
 	ShowParticlePath = true;
 	ParticleSpeed = 0.03;
-	ParticleDelay = 0.15;
+	ParticleXDelay = 0.15;
+	ParticleYDelay = 0.15;
 	ParticleRadius = 3;
-	ParticlePathDiameter = 23;
-	DistanceBetweenPathCenters = 26;
-	MatrixSize = ScreenHeight/DistanceBetweenPathCenters + 2;
+	ParticleOrbitDiameter = 23;
+	DistanceBetweenOrbits = 26;
+	MatrixSize = ScreenHeight/DistanceBetweenOrbits + 2;
 
-	SpeedSlide = new SlideBar("Particles Speed:", 610, 20, 180, -0.1, ParticleSpeed, 0.1);
+	SpeedSlide = new SlideBar("Particles Speed:", 2, 610, 20, 180, -0.1, ParticleSpeed, 0.1);
 	slides.push_back(SpeedSlide);
+	XDelaySlide = new SlideBar("Particles X Delay:", 2, 610, 80, 180, -1.0, ParticleXDelay, 1.0);
+	slides.push_back(XDelaySlide);
+	YDelaySlide = new SlideBar("Particles Y Delay:", 2, 610, 140, 180, -1.0, ParticleYDelay, 1.0);
+	slides.push_back(YDelaySlide);
+	ParticleRadiusSlide = new SlideBar("Particles Radius:", 2, 610, 200, 180, 0, ParticleRadius, 20.0);
+	slides.push_back(ParticleRadiusSlide);
+	ParticleOrbitDiameterSlide = new SlideBar("Orbit Diameter:", 4, 610, 260, 180, 0, ParticleOrbitDiameter, 50);
+	slides.push_back(ParticleOrbitDiameterSlide);
+	DistanceBetweenOrbitsSlide = new SlideBar("Orbits Distance:", 3, 610, 320, 180, 7, DistanceBetweenOrbits, 100);
+	slides.push_back(DistanceBetweenOrbitsSlide);
+	ParticleRSlide = new SlideBar("Particle R:", 3, 610, 380, 180, 0, ParticleR, 255);
+	slides.push_back(ParticleRSlide);
+	ParticleGSlide = new SlideBar("Particle G:", 3, 610, 440, 180, 0, ParticleG, 255);
+	slides.push_back(ParticleGSlide);
+	ParticleBSlide = new SlideBar("Particle B:", 3, 610, 500, 180, 0, ParticleB, 255);
+	slides.push_back(ParticleBSlide);
 		
 	cout << "Starting timers..." << endl;
 	al_start_timer(timer);
@@ -132,13 +155,15 @@ void Simulator::StartSimulator()
 	Initialize();
 
 	cout << "Initializing particles..." << endl;
-	vector<double> temp (MatrixSize);
-	vector<vector<double> > angles;
+
+	for (unsigned int i = 0; i < MatrixSize; i++)
+		temp.push_back(i);
+
 	for (unsigned int i = 0; i < MatrixSize; i++)
 	{
 		angles.push_back(temp);
 		for (unsigned int j = 0; j < MatrixSize; j++)
-			angles[i][j] = i*ParticleDelay + j*ParticleDelay;
+			angles[i][j] = i*ParticleYDelay + j*ParticleXDelay;
 	}
 
 	cout << "Starting control cycle..." << endl;
@@ -148,6 +173,7 @@ void Simulator::StartSimulator()
 		al_get_keyboard_state(&keyState);
 
 		TrackMouse();
+		ParticleColor = al_map_rgb(ParticleRSlide->getCurrentValue(), ParticleGSlide->getCurrentValue(), ParticleBSlide->getCurrentValue());
 		
 		/* --- UPDATING --- */
 		if (ev.type == ALLEGRO_EVENT_KEY_DOWN)
@@ -163,9 +189,26 @@ void Simulator::StartSimulator()
 
 		if (ev.type == ALLEGRO_EVENT_TIMER)
 		{
+			if (XDelaySlide->currentValueChanged() || YDelaySlide->currentValueChanged() ||
+				DistanceBetweenOrbitsSlide->currentValueChanged())
+			{
+				MatrixSize = ScreenHeight/DistanceBetweenOrbitsSlide->getCurrentValue() + 2;
+
+				temp.clear();
+				for (unsigned int i = 0; i < MatrixSize; i++)
+					temp.push_back(i);
+
+				angles.clear();
+				for (unsigned int i = 0; i < MatrixSize; i++)
+				{
+					angles.push_back(temp);
+					for (unsigned int j = 0; j < MatrixSize; j++)
+						angles[i][j] = i*YDelaySlide->getCurrentValue() + j*XDelaySlide->getCurrentValue();
+				}
+			}
+
 			for (SlideBar* obj : slides)
 				obj->updateSlide();
-			//SpeedSlide->updateSlide();
 
 			/* updating particles */
 			for (unsigned int i = 0; i < MatrixSize; i++)
@@ -184,13 +227,19 @@ void Simulator::StartSimulator()
 				for (unsigned int j = 0; j < MatrixSize; j++)
 				{
 					if (ShowParticlePath)
-						al_draw_circle(i*DistanceBetweenPathCenters, j*DistanceBetweenPathCenters, ParticlePathDiameter, Black, 1.0);
+						al_draw_circle(i*DistanceBetweenOrbitsSlide->getCurrentValue(), j*DistanceBetweenOrbitsSlide->getCurrentValue(), ParticleOrbitDiameterSlide->getCurrentValue(), Black, 1.0);
 
-					particle_x = cos(angles[i][j])*ParticlePathDiameter + j*DistanceBetweenPathCenters;
-					particle_y = sin(angles[i][j])*ParticlePathDiameter + i*DistanceBetweenPathCenters;
-					al_draw_filled_circle(particle_x, particle_y, ParticleRadius, ParticleColor);
+					particle_x = cos(angles[i][j])*ParticleOrbitDiameterSlide->getCurrentValue() + j*DistanceBetweenOrbitsSlide->getCurrentValue();
+					particle_y = sin(angles[i][j])*ParticleOrbitDiameterSlide->getCurrentValue() + i*DistanceBetweenOrbitsSlide->getCurrentValue();
+					al_draw_filled_circle(particle_x, particle_y, ParticleRadiusSlide->getCurrentValue(), ParticleColor);
 				}
 			}
+
+			/* author note */
+			al_draw_line(0, 580, 800, 580, Black, 1.0);
+			al_draw_filled_rectangle(0, 580, 800, 600, DarkGray);
+			al_draw_text(font, Black, 5+2, 4+581, NULL, "Author: Henrique Ferrolho                                      03-07-2013");
+			al_draw_text(font, White, 5+0, 4+580, NULL, "Author: Henrique Ferrolho                                      03-07-2013");
 
 			/* side-bar */
 			al_draw_line(600, 0, 600, 600, Black, 1.0);
@@ -199,7 +248,12 @@ void Simulator::StartSimulator()
 			/* slide bars */
 			for (SlideBar* obj : slides)
 				obj->Draw();
-			//SpeedSlide->Draw();
+
+			/* space bar note */
+			al_draw_text(font, Black, 702, 556, ALLEGRO_ALIGN_CENTER, "Press < space bar >");
+			al_draw_text(font, Black, 702, 573, ALLEGRO_ALIGN_CENTER, "to hide/show orbits");
+			al_draw_text(font, White, 700, 555, ALLEGRO_ALIGN_CENTER, "Press < space bar >");
+			al_draw_text(font, White, 700, 572, ALLEGRO_ALIGN_CENTER, "to hide/show orbits");
 
 			al_flip_display();
 			al_clear_to_color(White);

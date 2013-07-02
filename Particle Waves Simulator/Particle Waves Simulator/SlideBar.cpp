@@ -1,9 +1,10 @@
 #include "SlideBar.h"
 #include "Simulator.h"
 
-SlideBar::SlideBar(const char* Label, float X, float Y, float Width, double Min, double Default, double Max)
+SlideBar::SlideBar(const char* Label, int Precision, float X, float Y, float Width, double Min, double Default, double Max)
 {
 	label = Label;
+	precision = Precision;
 
 	label_x = X;
 	label_y = Y;
@@ -23,12 +24,24 @@ SlideBar::SlideBar(const char* Label, float X, float Y, float Width, double Min,
 	refreshSlidePosCoord();
 }
 
+bool SlideBar::currentValueChanged()
+{
+	if (prev_current_value == current_value)
+		return false;
+
+	prev_current_value = current_value;
+	return true;
+}
+
 void SlideBar::refreshSlidePosCoord()
 {
 	if (current_value > max_value)
 		current_value = max_value;
 	else if (current_value < min_value)
 		current_value = min_value;
+	
+	if (-0.001 < current_value && current_value < 0.001)
+		current_value = 0;
 
 	slide_pos = bar_x1 + (bar_width*(current_value-min_value) / (max_value-min_value));
 	slide_x1 = slide_pos - 4;
@@ -47,7 +60,9 @@ void SlideBar::updateSlide()
 	if (slide_is_active)
 	{
 		double x = Simulator::GetInstance()->mouse_x;
-		current_value = 1.0*x/900 - 7.0/9;
+		double m = (max_value-min_value) / (bar_x2-bar_x1);
+		double b = max_value - m*bar_x2;
+		current_value = m*x + b;
 	}
 
 	if (Simulator::GetInstance()->left_mouse_button_released)
@@ -61,9 +76,9 @@ void SlideBar::Draw()
 	/* label */
 	stringstream ss;
 	if (current_value < 0)
-		ss << label << "" << setprecision(2) << current_value;
+		ss << label << "" << setprecision(precision) << current_value;
 	else
-		ss << label << " " << setprecision(2) << current_value;
+		ss << label << " " << setprecision(precision) << current_value;
 	al_draw_text(Simulator::GetInstance()->font, Black, label_x+2, label_y+1, NULL, ss.str().c_str());
 	al_draw_text(Simulator::GetInstance()->font, White, label_x, label_y, NULL, ss.str().c_str());
 
