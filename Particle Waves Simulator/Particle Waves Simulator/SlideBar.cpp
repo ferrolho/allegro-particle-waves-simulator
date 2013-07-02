@@ -8,22 +8,81 @@ SlideBar::SlideBar(const char* Label, float X, float Y, float Width, double Min,
 	label_x = X;
 	label_y = Y;
 
-	slide_x1 = X;
-	slide_x2 = slide_x1 + Width;
-	slide_y1 = label_y + 20;
-	slide_y2 = slide_y1 + 10;
-
 	min_value = Min;
 	default_value = Default;
 	max_value = Max;
 	current_value = default_value;
+
+	bar_width = Width;
+	bar_x1 = X;
+	bar_x2 = bar_x1 + Width;
+	bar_y1 = label_y + 20;
+	bar_y2 = bar_y1 + 10;
+
+	slide_is_active = false;
+	refreshSlidePosCoord();
+}
+
+void SlideBar::refreshSlidePosCoord()
+{
+	if (current_value > max_value)
+		current_value = max_value;
+	else if (current_value < min_value)
+		current_value = min_value;
+
+	slide_pos = bar_x1 + (bar_width*(current_value-min_value) / (max_value-min_value));
+	slide_x1 = slide_pos - 4;
+	slide_y1 = bar_y1 - 2;
+	slide_x2 = slide_pos + 4;
+	slide_y2 = bar_y2 + 2;
+}
+
+void SlideBar::updateSlide()
+{
+	if (Simulator::GetInstance()->left_mouse_button_pressed &&
+		(slide_x1 < Simulator::GetInstance()->mouse_x && Simulator::GetInstance()->mouse_x < slide_x2) &&
+		(slide_y1 < Simulator::GetInstance()->mouse_y && Simulator::GetInstance()->mouse_y < slide_y2))
+	{ slide_is_active = true; }
+
+	if (slide_is_active)
+	{
+		double x = Simulator::GetInstance()->mouse_x;
+		current_value = 1.0*x/900 - 7.0/9;
+	}
+
+	if (Simulator::GetInstance()->left_mouse_button_released)
+		slide_is_active = false;
+	
+	refreshSlidePosCoord();
 }
 
 void SlideBar::Draw()
 {
-	//al_draw_text(font, Black, label_x, label_y, NULL, label);
-	al_draw_text(font, Black, 20, 20, NULL, "man");
-	al_draw_filled_rectangle(slide_x1, slide_y1, slide_x2, slide_y2, Gray);
+	/* label */
+	stringstream ss;
+	if (current_value < 0)
+		ss << label << "" << setprecision(2) << current_value;
+	else
+		ss << label << " " << setprecision(2) << current_value;
+	al_draw_text(Simulator::GetInstance()->font, Black, label_x+2, label_y+1, NULL, ss.str().c_str());
+	al_draw_text(Simulator::GetInstance()->font, White, label_x, label_y, NULL, ss.str().c_str());
+
+	/* bar */
+	al_draw_filled_rectangle(bar_x1, bar_y1, bar_x2, bar_y2, Black);
+	al_draw_filled_rectangle(bar_x1+1, bar_y1+1, bar_x2-1, bar_y2-1, Gray);
+	al_draw_line(bar_x1+1, bar_y1+2, bar_x2-1, bar_y1+2, DarkGray, 1.0);
+	al_draw_line(bar_x1+1, bar_y2-1, bar_x2-1, bar_y2-1, LightGray, 1.0);
+
+	/* min, default and max markers */
+	al_draw_line(bar_x1+2, bar_y2+2, bar_x1+2, bar_y2+8, Black, 1.0);
+	al_draw_line(bar_x1 + (bar_x2-bar_x1)/2, bar_y2+2, bar_x1 + (bar_x2-bar_x1)/2, bar_y2+6, Black, 1.0);
+	al_draw_line(bar_x2-1, bar_y2+2, bar_x2-1, bar_y2+8, Black, 1.0);
+
+	/* slide */
+	al_draw_filled_rectangle(slide_x1, slide_y1, slide_x2, slide_y2, Black);
+	al_draw_filled_rectangle(slide_pos-3, bar_y1-1, slide_pos+3, bar_y2+1, Gray);
+	al_draw_line(slide_pos-3, bar_y1, slide_pos+3, bar_y1, LightGray, 1.0);
+	al_draw_line(slide_pos-3, bar_y2+1, slide_pos+3, bar_y2+1, DarkGray, 1.0);
 }
 
 SlideBar::~SlideBar(void)

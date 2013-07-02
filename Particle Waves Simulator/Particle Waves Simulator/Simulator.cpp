@@ -1,7 +1,18 @@
 #include "Simulator.h"
-#include "SlideBar.h"
 
-void CreateAllegroDisplay()
+Simulator *Simulator::instance = nullptr;
+
+Simulator *Simulator::GetInstance()
+{
+	if (!instance)
+	{
+		instance = new Simulator();
+	}
+
+	return instance;
+}
+
+void Simulator::CreateAllegroDisplay()
 {
 	al_set_new_display_flags(ALLEGRO_WINDOWED);
 	display = al_create_display(ScreenWidth, ScreenHeight);
@@ -14,7 +25,17 @@ void CreateAllegroDisplay()
 	al_set_window_title(display, ProgramTitle);
 }
 
-void Initialize()
+void Simulator::LoadFonts()
+{
+	font = al_load_font(ConsolaTTF, 14, NULL);
+	if (!font)
+	{
+		al_show_native_message_box(Simulator::GetInstance()->display, "Error", "Could not load font file.", "Have you included the resources in the same directory of the program?", NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		exit(-1);
+	}
+}
+
+void Simulator::Initialize()
 {
 	cout << endl;
 	cout << "##############################" << endl;
@@ -42,12 +63,7 @@ void Initialize()
 	cout << "Creating display..." << endl;
 	CreateAllegroDisplay();
 	cout << "Loading fonts..." << endl;
-	font = al_load_font(ConsolaTTF, 20, ALLEGRO_ALIGN_CENTER);
-	if (!font)
-	{
-		al_show_native_message_box(display, "Error", "Could not load font file.", "Have you included the resources in the same directory of the program?", NULL, ALLEGRO_MESSAGEBOX_ERROR);
-		exit(-1);
-	}
+	LoadFonts();
 
 	cout << "Creating timers..." << endl;
 	timer = al_create_timer(1.0 / FPS);
@@ -61,26 +77,59 @@ void Initialize()
 	al_register_event_source(event_queue, al_get_mouse_event_source());
 	al_register_event_source(event_queue, al_get_keyboard_event_source());	
 
+	cout << "Initializing variables..." << endl;
+	done = false;
+	draw = true;
+	ParticleColor = Blue;
+	ShowParticlePath = true;
+	ParticleSpeed = 0.03;
+	ParticleDelay = 0.15;
+	ParticleRadius = 3;
+	ParticlePathDiameter = 23;
+	DistanceBetweenPathCenters = 26;
+	MatrixSize = ScreenHeight/DistanceBetweenPathCenters + 2;
+
+	SpeedSlide = new SlideBar("Particles Speed:", 610, 20, 180, -0.1, ParticleSpeed, 0.1);
+	slides.push_back(SpeedSlide);
+		
 	cout << "Starting timers..." << endl;
 	al_start_timer(timer);
 }
 
-void StartSimulator()
+void Simulator::TrackMouse()
+{
+	if (ev.type == ALLEGRO_EVENT_MOUSE_AXES)
+	{
+		mouse_x = ev.mouse.x;
+		mouse_y = ev.mouse.y;
+
+		draw = true;
+	}
+	if (ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN)
+	{
+		if (ev.mouse.button & 1)
+		{
+			//cout << "* Left mouse button pressed *" << endl;
+			left_mouse_button_pressed = true;
+			left_mouse_button_released = false;
+			draw = true;
+		}
+	}
+	if (ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP)
+	{
+		if (ev.mouse.button & 1)
+		{
+			cout << "* Left mouse button released *" << endl;
+			left_mouse_button_pressed = false;
+			left_mouse_button_released = true;
+			draw = true;
+		}
+	}
+}
+
+void Simulator::StartSimulator()
 {
 	Initialize();
-
-	cout << "Initializing variables..." << endl;
-	ALLEGRO_COLOR ParticleColor = Blue;
-	bool ShowParticlePath = true;
-	double ParticleSpeed = 0.03;
-	double ParticleDelay = 0.15;
-	double ParticleRadius = 3;
-	double ParticlePathDiameter = 23;
-	double DistanceBetweenPathCenters = 26;
-	const unsigned int MatrixSize = ScreenHeight/DistanceBetweenPathCenters + 2;
-
-	SlideBar *SpeedSlide = new SlideBar("Particles Speed:", 620, 20, 80, 0, ParticleSpeed, 0.3);
-
 
 	cout << "Initializing particles..." << endl;
 	vector<double> temp (MatrixSize);
@@ -92,21 +141,19 @@ void StartSimulator()
 			angles[i][j] = i*ParticleDelay + j*ParticleDelay;
 	}
 
-	bool done = false;
-	bool draw = true;
-
 	cout << "Starting control cycle..." << endl;
 	while (!done)
 	{
 		al_wait_for_event(event_queue, & ev);
 		al_get_keyboard_state(&keyState);
 
+		TrackMouse();
+		
 		/* --- UPDATING --- */
 		if (ev.type == ALLEGRO_EVENT_KEY_DOWN)
 		{
 			if (ev.keyboard.keycode == ALLEGRO_KEY_SPACE)
 			{
-				cout << "test";
 				if (ShowParticlePath)
 					ShowParticlePath = false;
 				else
@@ -116,6 +163,10 @@ void StartSimulator()
 
 		if (ev.type == ALLEGRO_EVENT_TIMER)
 		{
+			for (SlideBar* obj : slides)
+				obj->updateSlide();
+			//SpeedSlide->updateSlide();
+
 			/* updating particles */
 			for (unsigned int i = 0; i < MatrixSize; i++)
 				for (unsigned int j = 0; j < MatrixSize; j++)
@@ -127,6 +178,7 @@ void StartSimulator()
 		/* --- now drawing --- */
 		if (draw && al_event_queue_is_empty(event_queue))
 		{
+			double particle_x, particle_y;
 			for (unsigned int i = 0; i < MatrixSize; i++)
 			{
 				for (unsigned int j = 0; j < MatrixSize; j++)
@@ -134,8 +186,8 @@ void StartSimulator()
 					if (ShowParticlePath)
 						al_draw_circle(i*DistanceBetweenPathCenters, j*DistanceBetweenPathCenters, ParticlePathDiameter, Black, 1.0);
 
-					double particle_x = cos(angles[i][j])*ParticlePathDiameter + j*DistanceBetweenPathCenters;
-					double particle_y = sin(angles[i][j])*ParticlePathDiameter + i*DistanceBetweenPathCenters;
+					particle_x = cos(angles[i][j])*ParticlePathDiameter + j*DistanceBetweenPathCenters;
+					particle_y = sin(angles[i][j])*ParticlePathDiameter + i*DistanceBetweenPathCenters;
 					al_draw_filled_circle(particle_x, particle_y, ParticleRadius, ParticleColor);
 				}
 			}
@@ -145,7 +197,9 @@ void StartSimulator()
 			al_draw_filled_rectangle(600, 0, 800, 600, DarkGray);
 
 			/* slide bars */
-			SpeedSlide->Draw();
+			for (SlideBar* obj : slides)
+				obj->Draw();
+			//SpeedSlide->Draw();
 
 			al_flip_display();
 			al_clear_to_color(White);
@@ -163,11 +217,14 @@ void StartSimulator()
 	Terminate();
 }
 
-void Terminate()
+void Simulator::Terminate()
 {
 	cout << "Deallocating memory and quitting..." << endl;
-	al_destroy_display(display);
-	al_destroy_timer(timer);
-	al_destroy_event_queue(event_queue);
+	for (SlideBar* obj : slides)
+		delete obj;
 	al_destroy_font(font);
+	al_destroy_event_queue(event_queue);
+	al_destroy_timer(timer);
+	al_destroy_display(display);
+	delete instance;
 }

@@ -3,7 +3,7 @@
 
 int main()
 {
-	StartSimulator();
+	Simulator::GetInstance()->StartSimulator();
 
 	return 0;
 }

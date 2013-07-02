@@ -9,6 +9,9 @@
 
 /* standard includes */
 #include <iostream>
+#include <iomanip>
+#include <string>
+#include <sstream>
 #include <vector>
 #include <math.h>
 
@@ -18,6 +21,7 @@ using namespace std;
 #define Black al_map_rgb(0, 0, 0)
 #define DarkGray al_map_rgb(64, 64, 64)
 #define Gray al_map_rgb(128, 128, 128)
+#define LightGray al_map_rgb(192, 192, 192)
 #define Blue al_map_rgb(0, 0, 255)
 #define Green al_map_rgb(0, 255, 0)
 #define Red al_map_rgb(255, 0, 0)
