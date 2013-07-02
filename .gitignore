@@ -29,3 +29,5 @@ _ReSharper*/
 *.sdf
 *.svn
 *.opensdf
+*.sdf
+*.suo

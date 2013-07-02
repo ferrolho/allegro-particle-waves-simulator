@@ -12,8 +12,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Simulator.cpp" />
+    <ClCompile Include="SlideBar.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Simulator.h" />
+    <ClInclude Include="SlideBar.h" />
     <ClInclude Include="stdInclude.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

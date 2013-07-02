@@ -1,0 +1,27 @@
+#pragma once
+
+#include "stdInclude.h"
+
+class SlideBar
+{
+public:
+	SlideBar(const char* Name, float X, float Y, float Width, double Min, double Default, double Max);
+
+	double getCurrentValue() { return current_value; }
+
+	void Draw();
+
+	~SlideBar(void);
+
+private:
+	const char* label;
+
+	double min_value;
+	double default_value;
+	double max_value;
+	double current_value;
+
+	float label_x, label_y;
+	float slide_x1, slide_y1;
+	float slide_x2, slide_y2;
+};
