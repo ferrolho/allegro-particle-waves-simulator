@@ -7,6 +7,8 @@
 
 /* standard includes */
 #include <iostream>
+#include <vector>
+#include <math.h>
 
 using namespace std;
 
@@ -14,7 +16,15 @@ using namespace std;
 #define ProgramTitle "Particle Waves Simulator"
 #define ScreenWidth 800
 #define ScreenHeight 600
-const float FPS = 90.0;
+const double FPS = 90.0;
+
+bool ShowParticlePath = true;
+const double MatrixSize = 24;
+const double ParticleSpeed = 0.03;
+const double ParticleDelay = 0.15;
+const double ParticleRadius = 3;
+const double ParticlePathDiameter = 23;
+const double DistanceBetweenPathCenters = 26;
 
 /* user friendly names */
 #define Black al_map_rgb(0, 0, 0)

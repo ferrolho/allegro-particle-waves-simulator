@@ -73,6 +73,27 @@ int main ()
 	Initialize();
 
 	cout << "Initializing variables..." << endl;
+
+	vector<double> temp (MatrixSize);
+	vector<vector<double> > angles;
+	for (unsigned int i = 0; i < MatrixSize; i++)
+	{
+		angles.push_back(temp);
+		for (unsigned int j = 0; j < MatrixSize; j++)
+			angles[i][j] = i*ParticleDelay + j*ParticleDelay;
+	}
+
+
+	cout << endl << "Initial matrix:";
+	for (unsigned int i = 0; i < MatrixSize; i++)
+	{
+		cout << endl;
+		for (unsigned int j = 0; j < MatrixSize; j++)
+			cout << angles[i][j] << " ";
+	}
+	cout << endl << endl;
+
+
 	bool done = false;
 	bool draw = true;
 
@@ -84,6 +105,9 @@ int main ()
 		/* --- UPDATING --- */
 		if (ev.type == ALLEGRO_EVENT_TIMER || draw)
 		{
+			for (unsigned int i = 0; i < MatrixSize; i++)
+				for (unsigned int j = 0; j < MatrixSize; j++)
+					angles[i][j] += ParticleSpeed;
 
 			draw = true;
 		}
@@ -91,7 +115,21 @@ int main ()
 		/* --- now drawing --- */
 		if (draw && al_event_queue_is_empty(event_queue))
 		{
-			// things here
+			for (unsigned int i = 0; i < MatrixSize; i++)
+			{
+				for (unsigned int j = 0; j < MatrixSize; j++)
+				{
+					if (ShowParticlePath)
+						al_draw_circle(i*DistanceBetweenPathCenters, j*DistanceBetweenPathCenters, ParticlePathDiameter, Black, 1.0);
+
+					double particle_x = cos(angles[i][j])*ParticlePathDiameter + j*DistanceBetweenPathCenters;
+					double particle_y = sin(angles[i][j])*ParticlePathDiameter + i*DistanceBetweenPathCenters;
+					al_draw_filled_circle(particle_x, particle_y, ParticleRadius, Black);
+				}
+			}
+
+			/* side-bar */
+			al_draw_filled_rectangle(600, 0, 800, 600, Black);
 
 			al_flip_display();
 			al_clear_to_color(White);
