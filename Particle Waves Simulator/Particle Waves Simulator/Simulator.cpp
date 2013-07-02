@@ -106,7 +106,7 @@ void Simulator::Initialize()
 	slides.push_back(ParticleRadiusSlide);
 	ParticleOrbitDiameterSlide = new SlideBar("Orbit Diameter:", 4, 610, 260, 180, 0, ParticleOrbitDiameter, 50);
 	slides.push_back(ParticleOrbitDiameterSlide);
-	DistanceBetweenOrbitsSlide = new SlideBar("Orbits Distance:", 3, 610, 320, 180, 7, DistanceBetweenOrbits, 100);
+	DistanceBetweenOrbitsSlide = new SlideBar("Orbits Distance:", 3, 610, 320, 180, 4, DistanceBetweenOrbits, 100);
 	slides.push_back(DistanceBetweenOrbitsSlide);
 	ParticleRSlide = new SlideBar("Particle R:", 3, 610, 380, 180, 0, ParticleR, 255);
 	slides.push_back(ParticleRSlide);
