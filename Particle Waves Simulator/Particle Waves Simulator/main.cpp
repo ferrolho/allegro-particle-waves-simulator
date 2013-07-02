@@ -3,6 +3,7 @@
 ALLEGRO_DISPLAY *display = nullptr;
 ALLEGRO_EVENT ev;
 ALLEGRO_EVENT_QUEUE *event_queue = nullptr;
+ALLEGRO_KEYBOARD_STATE keyState;
 ALLEGRO_TIMER *timer = nullptr;
 
 void CreateAllegroDisplay()
@@ -83,17 +84,6 @@ int main ()
 			angles[i][j] = i*ParticleDelay + j*ParticleDelay;
 	}
 
-
-	cout << endl << "Initial matrix:";
-	for (unsigned int i = 0; i < MatrixSize; i++)
-	{
-		cout << endl;
-		for (unsigned int j = 0; j < MatrixSize; j++)
-			cout << angles[i][j] << " ";
-	}
-	cout << endl << endl;
-
-
 	bool done = false;
 	bool draw = true;
 
@@ -101,10 +91,24 @@ int main ()
 	while (!done)
 	{
 		al_wait_for_event(event_queue, & ev);
+		al_get_keyboard_state(&keyState);
 		
 		/* --- UPDATING --- */
-		if (ev.type == ALLEGRO_EVENT_TIMER || draw)
+		if (ev.type == ALLEGRO_EVENT_KEY_DOWN)
 		{
+			if (ev.keyboard.keycode == ALLEGRO_KEY_SPACE)
+			{
+				cout << "test";
+				if (ShowParticlePath)
+					ShowParticlePath = false;
+				else
+					ShowParticlePath = true;
+			}
+		}
+
+		if (ev.type == ALLEGRO_EVENT_TIMER)
+		{
+			/* updating particles */
 			for (unsigned int i = 0; i < MatrixSize; i++)
 				for (unsigned int j = 0; j < MatrixSize; j++)
 					angles[i][j] += ParticleSpeed;
@@ -129,7 +133,8 @@ int main ()
 			}
 
 			/* side-bar */
-			al_draw_filled_rectangle(600, 0, 800, 600, Black);
+			al_draw_line(600, 0, 600, 600, Black, 1.0);
+			al_draw_filled_rectangle(600, 0, 800, 600, DarkGray);
 
 			al_flip_display();
 			al_clear_to_color(White);

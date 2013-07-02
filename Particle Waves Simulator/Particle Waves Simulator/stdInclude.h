@@ -19,15 +19,17 @@ using namespace std;
 const double FPS = 90.0;
 
 bool ShowParticlePath = true;
-const double MatrixSize = 24;
-const double ParticleSpeed = 0.03;
-const double ParticleDelay = 0.15;
-const double ParticleRadius = 3;
-const double ParticlePathDiameter = 23;
-const double DistanceBetweenPathCenters = 26;
+double ParticleSpeed = 0.03;
+double ParticleDelay = 0.15;
+double ParticleRadius = 3;
+double ParticlePathDiameter = 23;
+double DistanceBetweenPathCenters = 26;
+const unsigned int MatrixSize = ScreenHeight/DistanceBetweenPathCenters + 2;
 
 /* user friendly names */
 #define Black al_map_rgb(0, 0, 0)
+#define DarkGray al_map_rgb(64, 64, 64)
+#define Gray al_map_rgb(128, 128, 128)
 #define Blue al_map_rgb(0, 0, 255)
 #define Green al_map_rgb(0, 255, 0)
 #define Red al_map_rgb(255, 0, 0)
