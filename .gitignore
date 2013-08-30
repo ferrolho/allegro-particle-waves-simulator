@@ -26,7 +26,6 @@ obj/
 _ReSharper*/
 [Tt]est[Rr]esult*
 *.log
-*.sdf
 *.svn
 *.opensdf
-*.suo
+*.sdf
